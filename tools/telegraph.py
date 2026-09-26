@@ -7,7 +7,8 @@
 Формат article.md: '# Заголовок', 'author: Имя | ссылка', '### Подзаголовок',
 абзацы через пустую строку, ссылки [текст](url), фото '![подпись](папка/файл.jpg)'.
 Фото берутся из этого репозитория с ветки main, поэтому перед publish их нужно запушить.
-Токен Telegraph хранится в .telegraph-token (в .gitignore, в git не попадает).
+Токен Telegraph берётся из переменной среды TELEGRAPH_TOKEN, иначе из .telegraph-token
+(в .gitignore, в git не попадает). Без токена создаётся новый аккаунт.
 Адрес созданной страницы пишется в <папка>/telegraph.json.
 """
 import json, re, sys, os, urllib.request, urllib.parse
@@ -99,7 +100,9 @@ def main():
     print("Все фото открываются.")
     if cmd == "check":
         return
-    token = open(TOKEN_FILE).read().strip() if os.path.exists(TOKEN_FILE) else None
+    token = os.environ.get("TELEGRAPH_TOKEN", "").strip() or None
+    if not token and os.path.exists(TOKEN_FILE):
+        token = open(TOKEN_FILE).read().strip()
     if not token:
         token = api("createAccount", short_name="AquaIncognita", author_name=author, author_url=author_url)["access_token"]
         with open(TOKEN_FILE, "w") as f:
